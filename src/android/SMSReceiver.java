@@ -1,4 +1,4 @@
-package com.rbcorrea.cordova.sms;
+package com.rbcorrea.cordova.receiver;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -29,57 +29,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class SMSReceiver extends CordovaPlugin {
-    private static final String LOGTAG = "SMSReceiver";
-    
-    public static final String ACTION_SET_OPTIONS = "setOptions";
-    private static final String ACTION_START_WATCH = "startWatch";
-    private static final String ACTION_STOP_WATCH = "stopWatch";
-    private static final String ACTION_ENABLE_INTERCEPT = "enableIntercept";
-    private static final String ACTION_LIST_SMS = "listSMS";
-    private static final String ACTION_DELETE_SMS = "deleteSMS";
-    private static final String ACTION_RESTORE_SMS = "restoreSMS";
-    private static final String ACTION_SEND_SMS = "sendSMS";
-    
-    private static final String SEND_SMS_ACTION = "SENT_SMS_ACTION";
-    private static final String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
-    private static final String SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
-    public static final String SMS_EXTRA_NAME = "pdus";
-    
-    public static final String SMS_URI_ALL = "content://sms/";
-    public static final String SMS_URI_INBOX = "content://sms/inbox";
-    public static final String SMS_URI_SEND = "content://sms/sent";
-    public static final String SMS_URI_DRAFT = "content://sms/draft";
-    public static final String SMS_URI_OUTBOX = "content://sms/outbox";
-    public static final String SMS_URI_FAILED = "content://sms/failed";
-    public static final String SMS_URI_QUEUED = "content://sms/queued";
-    
-    public static final String BOX = "box";
-    public static final String ADDRESS = "address";
-    public static final String BODY = "body";
-    public static final String READ = "read";
-    public static final String SEEN = "seen";
-    public static final String SUBJECT = "subject";
-    public static final String SERVICE_CENTER = "service_center";
-    public static final String DATE = "date";
-    public static final String DATE_SENT = "date_sent";
-    public static final String STATUS = "status";
-    public static final String REPLY_PATH_PRESENT = "reply_path_present";
-    public static final String TYPE = "type";
-    public static final String PROTOCOL = "protocol";
-    
-    public static final int MESSAGE_TYPE_INBOX = 1;
-    public static final int MESSAGE_TYPE_SENT = 2;
-    public static final int MESSAGE_IS_NOT_READ = 0;
-    public static final int MESSAGE_IS_READ = 1;
-    public static final int MESSAGE_IS_NOT_SEEN = 0;
-    public static final int MESSAGE_IS_SEEN = 1;
-    
-    private static final String SMS_GENERAL_ERROR = "SMS_GENERAL_ERROR";
-    private static final String NO_SMS_SERVICE_AVAILABLE = "NO_SMS_SERVICE_AVAILABLE";
-    private static final String SMS_FEATURE_NOT_SUPPORTED = "SMS_FEATURE_NOT_SUPPORTED";
-    private static final String SENDING_SMS_ID = "SENDING_SMS";
-    
+public class SMSReceiver extends CordovaPlugin {    
+       
     private ContentObserver mObserver = null;
     private BroadcastReceiver mReceiver = null;
     private boolean mIntercept = false;
@@ -88,19 +39,15 @@ public class SMSReceiver extends CordovaPlugin {
 
     public boolean execute(String action, JSONArray inputs, CallbackContext callbackContext) throws JSONException {
         PluginResult result = null;
-        if (ACTION_SET_OPTIONS.equals(action)) {
-            JSONObject options = inputs.optJSONObject(0);
-            this.setOptions(options);
-            result = new PluginResult(PluginResult.Status.OK);
-        } else if (ACTION_START_WATCH.equals(action)) {
+        if ("startWatch".equals(action)) {
             result = this.startWatch(callbackContext);
-        } else if (ACTION_STOP_WATCH.equals(action)) {
+        } else if ("stopWatch".equals(action)) {
             result = this.stopWatch(callbackContext);
-        } else if (ACTION_ENABLE_INTERCEPT.equals(action)) {
+        } else if ("enableIntercept".equals(action)) {
             boolean on_off = inputs.optBoolean(0);
             result = this.enableIntercept(on_off, callbackContext);
         } else {
-            Log.d(LOGTAG, String.format("Invalid action passed: %s", action));
+            Log.d("SMSReceiver", String.format("Not valid action: %s", action));
             result = new PluginResult(PluginResult.Status.INVALID_ACTION);
         }
         if (result != null) {
@@ -112,13 +59,8 @@ public class SMSReceiver extends CordovaPlugin {
     public void onDestroy() {
         this.stopWatch(null);
     }
-
-    protected String __getProductShortName() {
-        return "SMS";
-    }
-
     private PluginResult startWatch(CallbackContext callbackContext) {
-        Log.d(LOGTAG, ACTION_START_WATCH);
+        Log.d("SMSReceiver", "startWatch");
         if (this.mObserver == null) {
             this.createContentObserver();
         }
@@ -132,17 +74,15 @@ public class SMSReceiver extends CordovaPlugin {
     }
 
     private PluginResult stopWatch(CallbackContext callbackContext) {
-        Log.d(LOGTAG, ACTION_STOP_WATCH);
+        Log.d("SMSReceiver", "stopWatch");
         Activity ctx = this.cordova.getActivity();
         if (this.mReceiver != null) {
             ctx.unregisterReceiver(this.mReceiver);
             this.mReceiver = null;
-            Log.d(LOGTAG, "broadcast receiver unregistered");
         }
         if (this.mObserver != null) {
             ctx.getContentResolver().unregisterContentObserver(this.mObserver);
             this.mObserver = null;
-            Log.d(LOGTAG, "sms inbox observer unregistered");
         }
         if (callbackContext != null) {
             callbackContext.success();
@@ -151,7 +91,7 @@ public class SMSReceiver extends CordovaPlugin {
     }
 
     private PluginResult enableIntercept(boolean on_off, CallbackContext callbackContext) {
-        Log.d(LOGTAG, ACTION_ENABLE_INTERCEPT);
+        Log.d("SMSReceiver", "enableIntercept");
         this.mIntercept = on_off;
         if (callbackContext != null) {
             callbackContext.success();
@@ -161,7 +101,7 @@ public class SMSReceiver extends CordovaPlugin {
 
     private void fireEvent(final String event, JSONObject json) {
     	final String str = json.toString();
-    	Log.d(LOGTAG, "Event: " + event + ", " + str);
+    	Log.d("SMSReceiver", "Event: " + event + ", " + str);
     	
         cordova.getActivity().runOnUiThread(new Runnable(){
             @Override
@@ -171,20 +111,15 @@ public class SMSReceiver extends CordovaPlugin {
             }
         });
     }
-
-    public void setOptions(JSONObject options) {
-        Log.d(LOGTAG, ACTION_SET_OPTIONS);
-    }
-
-    private void onSMSArrive(JSONObject json) {
-        String from = json.optString(ADDRESS);
-        String content = json.optString(BODY);
+    private void onSMSReceived(JSONObject json) {
+        String from = json.optString("address");
+        String content = json.optString("body");
         if (from.equals(this.lastFrom) && content.equals(this.lastContent)) {
             return;
         }
-        this.lastFrom = from;
-        this.lastContent = content;
-        this.fireEvent("onSMSArrive", json);
+        this.lastFrom = json.optString("adress");
+        this.lastContent = json.optString("body");
+        this.fireEvent("onSMSReceived", json);
     }
 
     private JSONObject getJsonFromCursor(Cursor cur) {
@@ -226,8 +161,8 @@ public class SMSReceiver extends CordovaPlugin {
 
             public void onReceive(Context context, Intent intent) {
                 String action = intent.getAction();
-                Log.d(LOGTAG, ("onRecieve: " + action));
-                if (SMS_RECEIVED.equals(action)) {
+                Log.d("SMSReceiver", ("onRecieve: " + action));
+                if ("android.provider.Telephony.SMS_RECEIVED".equals(action)) {
                     Bundle bundle;
                     if (SMSReceiver.this.mIntercept) {
                         this.abortBroadcast();
@@ -238,19 +173,18 @@ public class SMSReceiver extends CordovaPlugin {
                             for (int i = 0; i < pdus.length; ++i) {
                                 SmsMessage sms = SmsMessage.createFromPdu((byte[])((byte[])pdus[i]));
                                 JSONObject json = SMSReceiver.this.getJsonFromSmsMessage(sms);
-                                SMSReceiver.this.onSMSArrive(json);
+                                SMSReceiver.this.onSMSReceived(json);
                             }
                         }
                     }
                 }
             }
         };
-        String[] filterstr = new String[]{SMS_RECEIVED};
+        String[] filterstr = new String[]{"android.provider.Telephony.SMS_RECEIVED"};
         for (int i = 0; i < filterstr.length; ++i) {
             IntentFilter filter = new IntentFilter(filterstr[i]);
             filter.setPriority(100);
             ctx.registerReceiver(this.mReceiver, filter);
-            Log.d(LOGTAG, ("broadcast receiver registered for: " + filterstr[i]));
         }
     }
 
@@ -264,54 +198,54 @@ public class SMSReceiver extends CordovaPlugin {
 
             public void onChange(boolean selfChange, Uri uri) {
                 ContentResolver resolver = cordova.getActivity().getContentResolver(); 
-                Log.d(LOGTAG, ("onChange, selfChange: " + selfChange + ", uri: " + (Object)uri));
+                Log.d("SMSReceiver", ("onChange, selfChange: " + selfChange + ", uri: " + (Object)uri));
                 int id = -1;
                 String str;
-                if (uri != null && (str = uri.toString()).startsWith(SMS_URI_ALL)) {
+                if (uri != null && (str = uri.toString()).startsWith("content://sms/")) {
                     try {
-                        id = Integer.parseInt(str.substring(SMS_URI_ALL.length()));
-                        Log.d(LOGTAG, ("sms id: " + id));
+                        id = Integer.parseInt(str.substring("content://sms/".length()));
+                        Log.d("SMSReceiver", ("sms id: " + id));
                     }
-                    catch (NumberFormatException var6_6) {
+                    catch (NumberFormatException nfe) {
                         // empty catch block
                     }
                 }
                 if (id == -1) {
-                    uri = Uri.parse(SMS_URI_INBOX);
+                    uri = Uri.parse("content://sms/inbox");
                 }
                 Cursor cur = resolver.query(uri, null, null, null, "_id desc");
                 if (cur != null) {
                     int n = cur.getCount();
-                    Log.d(LOGTAG, ("n = " + n));
+                    Log.d("SMSReceiver", ("n = " + n));
                     if (n > 0 && cur.moveToFirst()) {
                         JSONObject json;
                         if ((json = SMSReceiver.this.getJsonFromCursor(cur)) != null) {
-                            onSMSArrive(json);
+                            onSMSReceived(json);
                         } else {
-                            Log.d(LOGTAG, "fetch record return null");
+                            Log.d("SMSReceiver", "fetch record return null");
                         }
                     }
                     cur.close();
                 }
             }
         };
-        ctx.getContentResolver().registerContentObserver(Uri.parse(SMS_URI_INBOX), true, this.mObserver);
-        Log.d(LOGTAG, "sms inbox observer registered");
+        ctx.getContentResolver().registerContentObserver(Uri.parse("content://sms/inbox"), true, this.mObserver);
+        Log.d("SMSReceiver", "REGISTERED OBSERVER!");
     }
 
     private JSONObject getJsonFromSmsMessage(SmsMessage sms) {
     	JSONObject json = new JSONObject();
     	
         try {
-        	json.put( ADDRESS, sms.getOriginatingAddress() );
-        	json.put( BODY, sms.getMessageBody() ); // May need sms.getMessageBody.toString()
-        	json.put( DATE_SENT, sms.getTimestampMillis() );
-        	json.put( DATE, System.currentTimeMillis() );
-        	json.put( READ, MESSAGE_IS_NOT_READ );
-        	json.put( SEEN, MESSAGE_IS_NOT_SEEN );
-        	json.put( STATUS, sms.getStatus() );
-        	json.put( TYPE, MESSAGE_TYPE_INBOX );
-        	json.put( SERVICE_CENTER, sms.getServiceCenterAddress());
+        	json.put( "address", sms.getOriginatingAddress() );
+        	json.put( "body", sms.getMessageBody() ); // May need sms.getMessageBody.toString()
+        	json.put( "date_sent", sms.getTimestampMillis() );
+        	json.put( "date", System.currentTimeMillis() );
+        	json.put( "read", 0 );
+        	json.put( "seen", 0 );
+        	json.put( "status", sms.getStatus() );
+        	json.put( "type", 1 );
+        	json.put( "service_center", sms.getServiceCenterAddress());
         	
         } catch ( Exception e ) { 
             e.printStackTrace(); 
@@ -322,13 +256,35 @@ public class SMSReceiver extends CordovaPlugin {
 
     private ContentValues getContentValuesFromJson(JSONObject json) {
     	ContentValues values = new ContentValues();
-    	values.put( ADDRESS, json.optString(ADDRESS) );
-    	values.put( BODY, json.optString(BODY));
-    	values.put( DATE_SENT,  json.optLong(DATE_SENT));
-    	values.put( READ, json.optInt(READ));
-    	values.put( SEEN, json.optInt(SEEN));
-    	values.put( TYPE, json.optInt(TYPE) );
-    	values.put( SERVICE_CENTER, json.optString(SERVICE_CENTER));
+    	values.put( "address", json.optString("address") );
+    	values.put( "body", json.optString("body"));
+    	values.put( "date_sent",  json.optLong("date_sent"));
+    	values.put( "read", json.optInt("read"));
+    	values.put( "seen", json.optInt("seen"));
+    	values.put( "type", json.optInt("type") );
+    	values.put( "service_center", json.optString("service_center"));
     	return values;
     }
+
+    private PluginResult restoreSMS(JSONArray array, CallbackContext callbackContext) {
+        ContentResolver resolver = this.cordova.getActivity().getContentResolver();
+        Uri uri = Uri.parse("content://sms/inbox");
+        int n = array.length();
+        int m = 0;
+        for (int i = 0; i < n; ++i) {
+            JSONObject json;
+            if ((json = array.optJSONObject(i)) == null) continue;
+            String str = json.toString();
+            Log.d("SMSReceiver", str);
+            Uri newuri = resolver.insert(uri, this.getContentValuesFromJson(json));
+            Log.d("SMSReceiver", ("inserted: " + newuri.toString()));
+            ++m;
+        }
+        if (callbackContext != null) {
+            callbackContext.success(m);
+        }
+        return null;
+    }
+
+    
 }

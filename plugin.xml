@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1" encoding="UTF-8"?>
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	id="cordova-sms-receiver"
-	version="0.0.1">
+	version="0.1">
       
     <name>SMSReceiver</name>
 	<description>A simple plugin to read incoming messages</description>
@@ -15,7 +15,7 @@
 	    <engine name="cordova" version=">=3.0.0" />
 	</engines>
 
-    <js-module src="www/SMS.js" name="SMS">
+    <js-module src="www/SMSExports.js" name="SMS">
         <clobbers target="window.SMS" />
     </js-module>
 
@@ -23,7 +23,7 @@
     <platform name="android">
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="SMS">
-                <param name="android-package" value="com.rbcorrea.cordova.sms.SMSReceiver"/>
+                <param name="android-package" value="com.rbcorrea.cordova.receiver.SMSReceiver"/>
             </feature>
         </config-file>
         
@@ -31,8 +31,6 @@
 		    <uses-feature android:name="android.hardware.telephony" android:required="false" />
 			<uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 		    <uses-permission android:name="android.permission.RECEIVE_SMS" />
-		    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH" />
-		    <uses-permission android:name="android.permission.RECEIVE_MMS" />
 		    <uses-permission android:name="android.permission.READ_SMS" />
           </config-file>
           
